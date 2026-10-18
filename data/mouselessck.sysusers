@@ -1,0 +1,4 @@
+# mouselessCK service account: no login shell, no home, no password.
+# Its group "mouselessck" gets /dev/uinput (see 70-mouselessck.rules) and must
+# keep no other members.
+u mouselessck - "mouselessCK input daemon" - -

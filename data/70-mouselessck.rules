@@ -1,0 +1,7 @@
+# mouselessCK: let the service user create virtual devices.
+#
+# SECURITY: write access to /dev/uinput means being able to inject key presses
+# into the session. It is granted ONLY to the "mouselessck" group, whose sole
+# member is the service user. Never add a human account to this group (or to
+# "input", which can read every keyboard).
+KERNEL=="uinput", SUBSYSTEM=="misc", GROUP="mouselessck", MODE="0660", OPTIONS+="static_node=uinput"

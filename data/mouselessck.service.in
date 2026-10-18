@@ -1,0 +1,56 @@
+[Unit]
+Description=mouselessCK keyboard-driven pointer
+Documentation=file:@DOCDIR@/README.md
+# Stop retrying after 3 failures in a minute: a broken build must not keep
+# grabbing the keyboards in a loop.
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=@LIBEXECDIR@/mouselessckd
+Restart=on-failure
+RestartSec=1
+# The event loop pings the watchdog. If it hangs, systemd kills the daemon,
+# the kernel releases the keyboards and they work again on their own.
+WatchdogSec=5
+
+# A dedicated system user, never root. "input" lets it read keyboards;
+# /dev/uinput is opened to its own group by 70-mouselessck.rules.
+User=mouselessck
+Group=mouselessck
+SupplementaryGroups=input
+UMask=0077
+RuntimeDirectory=mouselessck
+RuntimeDirectoryMode=0755
+
+# Hardening: the daemon reads every key press, so it gets nothing else.
+DevicePolicy=closed
+DeviceAllow=/dev/uinput rw
+DeviceAllow=char-input rw
+# No network. AF_NETLINK is needed for udev hotplug events, AF_UNIX for the
+# state socket, systemd notifications and logind (D-Bus).
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+IPAddressDeny=any
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectProc=invisible
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+
+[Install]
+WantedBy=multi-user.target

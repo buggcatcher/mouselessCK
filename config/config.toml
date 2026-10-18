@@ -1,0 +1,61 @@
+# mouselessCK configuration
+#
+# Installed at /etc/mouselessck/config.toml. Every value below is the default;
+# delete a line to fall back to it. After editing, restart the services:
+#
+#   sudo systemctl restart mouselessck
+#   systemctl --user restart mouselessck-indicator
+#
+# Keys use Linux input names (KEY_W, KEY_ENTER, ...). They name physical
+# key positions, so the layout does not matter: KEY_SEMICOLON is the "ò" key
+# on an Italian keyboard. `sudo evtest` shows the name of any key.
+
+[toggle]
+# Tap modifier + key to turn mouse mode on and off. The modifier must be held
+# alone: Meta+Shift+M, for example, is left to applications.
+modifier = "meta"            # "meta", "ctrl" or "alt"
+key = "KEY_M"
+# Tapped while Meta is down so KDE does not see a lone Meta press (which opens
+# the application launcher). The first key the keyboard supports is used.
+guard_keys = ["KEY_F24", "KEY_LEFTCTRL"]
+
+[keys]
+# Active only in mouse mode.
+up = ["KEY_W", "KEY_UP"]
+down = ["KEY_S", "KEY_DOWN"]
+left = ["KEY_A", "KEY_LEFT"]
+right = ["KEY_D", "KEY_RIGHT"]
+scroll = ["KEY_SPACE"]           # hold, then use the direction keys
+precision = ["KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"]  # hold either for slow, precise movement and scrolling
+left_click = ["KEY_J", "KEY_ENTER"]
+middle_click = ["KEY_K"]
+right_click = ["KEY_L"]
+# Keys that still reach applications in mouse mode. Chords with Ctrl, Alt or
+# Meta and media keys (volume, playback) always do.
+passthrough = ["KEY_ESC"]
+
+[pointer]
+rate_hz = 100                # motion updates per second
+start_speed = 120.0          # pixels per second when a key is first pressed
+max_speed = 1600.0           # pixels per second after accel_time
+accel_time = 0.6             # seconds from start_speed to max_speed
+precision_factor = 0.25      # speed multiplier while precision is held
+
+[scroll]
+start_speed = 4.0            # wheel notches per second
+max_speed = 30.0
+accel_time = 0.8
+precision_factor = 0.25
+
+[devices]
+# Keyboards to leave alone, by exact device name (see `mouselessckd --list`).
+ignore = []
+
+[ipc]
+socket = "/run/mouselessck/state.sock"
+
+[indicator]
+corner = "bottom-right"      # bottom-right, bottom-left, top-right, top-left
+size = 36                    # icon size in pixels
+margin = 12                  # distance from the screen edges
+opacity = 0.75

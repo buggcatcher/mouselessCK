@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# mouselessCK trial run.
+#
+# Starts the REAL, fully sandboxed service for a limited time and enables it
+# at boot only if you confirm, by typing through it, that the keyboard works.
+#
+#   sudo mouselessck-trial            90-second trial
+#   sudo mouselessck-trial 120        custom limit (30-600 s)
+#
+# SAFETY: the time limit is enforced by systemd itself (RuntimeMaxSec) through
+# a drop-in written to /run, which is a RAM file system wiped at every boot.
+# So the trial ends on its own even if this script is killed or the daemon
+# hangs, and a reboot can never start an unconfirmed trial.
+set -euo pipefail
+
+LIMIT="${1:-90}"
+UNIT=mouselessck.service
+DROPIN_DIR="/run/systemd/system/$UNIT.d"
+DROPIN="$DROPIN_DIR/50-trial.conf"
+
+[[ $EUID -eq 0 ]] || { echo "Run with sudo: sudo $0 $*" >&2; exit 1; }
+[[ -t 0 ]] || { echo "A terminal is needed to confirm the trial." >&2; exit 1; }
+if ! [[ "$LIMIT" =~ ^[0-9]+$ ]] || (( LIMIT < 30 || LIMIT > 600 )); then
+    echo "The time limit must be a number of seconds between 30 and 600." >&2
+    exit 2
+fi
+
+cleanup() {
+    rm -f "$DROPIN"
+    rmdir "$DROPIN_DIR" 2>/dev/null || true
+    systemctl daemon-reload
+    systemctl reset-failed "$UNIT" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+systemctl stop "$UNIT" 2>/dev/null || true
+mkdir -p "$DROPIN_DIR"
+cat > "$DROPIN" <<EOF
+# Temporary: removed when the trial ends, and gone after any reboot.
+[Service]
+RuntimeMaxSec=$LIMIT
+Restart=no
+EOF
+systemctl daemon-reload
+
+# Type=notify: this returns only once the daemon reports it is ready.
+START_TIME="$(date +%s)"
+if ! systemctl start "$UNIT"; then
+    echo "The daemon did not start. Details: journalctl -u $UNIT -n 30" >&2
+    exit 1
+fi
+
+cat <<EOF
+
+  mouselessCK is running for $LIMIT seconds.
+
+  1. Press Meta+M: the mouse icon appears bottom-right.
+     Move with W A S D, scroll with Space + S, click with J.
+  2. Press Meta+M again: the icon disappears.
+  3. Type  yes  below and press Enter.
+
+  If anything misbehaves, just wait: it switches itself off in $LIMIT s.
+  Immediate stop: hold BOTH Shift keys and press Esc.
+
+EOF
+answer=""
+read -r -t "$((LIMIT - 5))" -p "Confirm: " answer || true
+# The confirmation only proves something if it was typed THROUGH a running
+# mouselessCK. After the emergency chord (or a crash) the keyboard is plain
+# again, so a "yes" typed then must not enable anything.
+was_running=0
+systemctl is-active --quiet "$UNIT" && was_running=1
+# ...and only if it actually held a keyboard: a daemon that took over none
+# (permissions, unusual hardware) lets the typing go straight to the desktop.
+held_keyboard=0
+journalctl -u "$UNIT" --since "@$START_TIME" -o cat --no-pager 2>/dev/null \
+    | grep -q "keyboard attached" && held_keyboard=1
+systemctl stop "$UNIT" 2>/dev/null || true
+cleanup
+trap - EXIT
+
+if [[ "$answer" == "yes" && $was_running -eq 0 ]]; then
+    systemctl disable "$UNIT" 2>/dev/null || true
+    echo
+    echo "mouselessCK was no longer running when you confirmed (emergency stop or"
+    echo "an error), so the confirmation does not count: NOT enabled."
+    echo "  Logs:      journalctl -u $UNIT -n 50"
+    echo "  Try again: sudo $0"
+    exit 1
+fi
+
+if [[ "$answer" == "yes" && $held_keyboard -eq 0 ]]; then
+    systemctl disable "$UNIT" 2>/dev/null || true
+    echo
+    echo "mouselessCK did not take over any keyboard, so your typing did not pass"
+    echo "through it and the confirmation does not count: NOT enabled."
+    echo "  Logs:      journalctl -u $UNIT -n 50"
+    exit 1
+fi
+
+if [[ "$answer" != "yes" ]]; then
+    # Not confirmed: make sure nothing runs at boot either.
+    systemctl disable "$UNIT" 2>/dev/null || true
+    echo
+    echo "Not confirmed: mouselessCK is NOT enabled and nothing runs at boot."
+    echo "  Logs:      journalctl -u $UNIT -n 50"
+    echo "  Try again: sudo $0"
+    exit 1
+fi
+
+echo "Confirmed: enabling mouselessCK at boot."
+systemctl enable --now "$UNIT"
+systemctl --global enable mouselessck-indicator.service

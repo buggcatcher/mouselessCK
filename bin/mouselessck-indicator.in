@@ -1,0 +1,14 @@
+#!/usr/bin/python3 -I
+# mouselessCK on-screen indicator (installed launcher)
+# `python3 -I` (isolated mode) ignores PYTHONPATH, PYTHONHOME, the user's
+# site-packages and the current directory, so nobody can slip a module in
+# through the environment. Code is loaded only from the root-owned path below.
+import sys
+
+sys.path.insert(0, "@PYLIBDIR@")
+from mouselessck.preload import load_layer_shell  # noqa: E402
+
+load_layer_shell()  # must happen before GTK is imported
+from mouselessck.indicator import main  # noqa: E402
+
+sys.exit(main())
