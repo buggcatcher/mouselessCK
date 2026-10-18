@@ -8,6 +8,7 @@
   <img alt="46 tests passing" src="https://img.shields.io/badge/tests-46%20passing-2da44e?style=flat&logo=pytest&logoColor=white">
   <img alt="systemd exposure 1.3" src="https://img.shields.io/badge/systemd%20exposure-1.3%20OK-2da44e?style=flat">
   <img alt="SELinux enforcing" src="https://img.shields.io/badge/SELinux-enforcing%2C%200%20denials-2da44e?style=flat">
+  <img alt="Built with Claude" src="https://img.shields.io/badge/built%20with-Claude-D97757?style=flat&logo=claude&logoColor=white">
 </p>
 
 <p align="center">
