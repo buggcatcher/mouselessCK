@@ -244,7 +244,7 @@ is in [SECURITY.md](SECURITY.md).
 | KDE Plasma 6 | ✅ | ✅ |
 | Sway, Hyprland, niri and other wlroots compositors | ✅ | ✅ |
 | COSMIC | ✅ | ✅ |
-| GNOME | ✅ | ❌ no layer-shell |
+| GNOME | ✅ | ❌ |
 | X11 sessions | ✅ | ❌ |
 
 Other tools that grab keyboards (keyd, kanata, input-remapper, xremap)
