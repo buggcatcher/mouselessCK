@@ -56,6 +56,6 @@ socket = "/run/mouselessck/state.sock"
 
 [indicator]
 corner = "bottom-right"      # bottom-right, bottom-left, top-right, top-left
-size = 36                    # icon size in pixels
-margin = 12                  # distance from the screen edges
+size = 42                    # icon size in pixels
+margin = 18                  # distance from the screen edges
 opacity = 0.75
