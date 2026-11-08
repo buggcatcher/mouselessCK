@@ -14,9 +14,14 @@ import glob
 
 def find_library() -> str | None:
     # Only system library directories (owned by root) are searched, never the
-    # current directory or the user's home.
+    # current directory or the user's home. The "*/" patterns cover Debian/
+    # Ubuntu/Kali multiarch, where the shared library lives one level deeper,
+    # in a triplet directory (e.g. /usr/lib/x86_64-linux-gnu/); Fedora keeps
+    # it directly under /usr/lib64/, matched by the first pattern.
     found = sorted(glob.glob("/usr/lib*/libgtk4-layer-shell.so*")
-                   + glob.glob("/usr/local/lib*/libgtk4-layer-shell.so*"),
+                   + glob.glob("/usr/lib*/*/libgtk4-layer-shell.so*")
+                   + glob.glob("/usr/local/lib*/libgtk4-layer-shell.so*")
+                   + glob.glob("/usr/local/lib*/*/libgtk4-layer-shell.so*"),
                    key=len)
     return found[0] if found else None
 
