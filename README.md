@@ -13,6 +13,7 @@
 
 <p align="center">
   <img alt="Fedora 43 | 44 | 45" src="https://img.shields.io/badge/Fedora-43%20%7C%2044%20%7C%2045-51A2DA?style=flat&logo=fedora&logoColor=white">
+  <img alt="Debian family: Kali, Ubuntu, Debian" src="https://img.shields.io/badge/Debian%20family-Kali%20%7C%20Ubuntu%20%7C%20Debian-A80030?style=flat&logo=debian&logoColor=white">
   <img alt="KDE Plasma 6" src="https://img.shields.io/badge/KDE%20Plasma-6-1D99F3?style=flat&logo=kdeplasma&logoColor=white">
   <img alt="Wayland" src="https://img.shields.io/badge/Wayland-native-FFBC00?style=flat&logo=wayland&logoColor=black">
   <img alt="Linux evdev and uinput" src="https://img.shields.io/badge/Linux-evdev%20%2B%20uinput-FCC624?style=flat&logo=linux&logoColor=black">
@@ -29,7 +30,8 @@
 <p align="center">
   <b>Drive the pointer from the home row.</b> Move, click, drag and scroll with
   <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrows, toggled with <kbd>Meta</kbd>+<kbd>M</kbd>.<br>
-  Made for compact keyboards with no numpad, on Wayland, without trusting your keystrokes to anyone.
+  Made for compact keyboards with no numpad, on Wayland, without trusting your keystrokes to anyone.<br>
+  Runs on <b>Fedora</b> and the <b>Debian family</b> (Kali, Ubuntu, Debian); pointer and keys on Wayland or X11.
 </p>
 
 ---
@@ -116,7 +118,8 @@ wlroots: libinput treats a uinput device exactly like real hardware.
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Fedora | 43, 44, 45 | Other systemd distributions work with the same packages |
+| Fedora | 43, 44, 45 | Primary target; install with `./install.sh` (dnf) |
+| Debian family | Kali, Ubuntu, Debian | Install with `./install.kali.sh` (apt); see [KALI.md](KALI.md) |
 | Desktop | KDE Plasma 6 (tested 6.7.5) | Any Wayland compositor or X11 for the pointer; layer-shell for the icon |
 | Linux kernel | with `uinput` | Loaded automatically at boot |
 | Python | 3.11 or later | Uses `tomllib` from the standard library |
@@ -151,6 +154,14 @@ time limit that systemd enforces no matter what. It is enabled at boot only
 if you type `yes` *through* mouselessCK while it is running and holding your
 keyboard. If anything misbehaves, do nothing and wait.
 
+> [!NOTE]
+> On **Kali, Debian or Ubuntu** run `sudo ./install.kali.sh` instead of
+> `install.sh`: it installs the same dependencies with apt and then runs the
+> same install and trial. The program is identical on both systems; only the
+> installer differs. See [KALI.md](KALI.md). On the default Kali session
+> (Xfce on X11) the pointer, clicks and scroll work but there is no on-screen
+> icon, exactly as on any X11 desktop.
+
 > [!TIP]
 > One-time KDE setting: **System Settings → Mouse & Touchpad →
 > mouselessCK Virtual Mouse**, turn pointer acceleration off. The speed then
@@ -168,6 +179,25 @@ systemctl --user start mouselessck-indicator
 ```
 
 The RPM also installs on Fedora Atomic desktops with `rpm-ostree install`.
+</details>
+
+<details>
+<summary><b>Install on Kali / Debian / Ubuntu (apt) instead</b></summary>
+
+```bash
+sudo apt install python3-evdev
+sudo python3 tools/probe_mouse.py   # the same virtual-mouse check as step 1
+sudo ./install.kali.sh              # apt dependencies, then the 90-second trial
+systemctl --user start mouselessck-indicator
+```
+
+`install.kali.sh` installs the Debian package equivalents of the Fedora
+dependencies and then runs the same install and trial as `install.sh`. The
+program itself is identical on both; only the installer differs. On the
+default Kali session (Xfce on X11) the pointer, clicks and scroll work but
+there is no on-screen icon, exactly as on any X11 desktop — the icon needs a
+Wayland wlroots or KDE session. Details and VirtualBox notes are in
+[KALI.md](KALI.md).
 </details>
 
 ## Configuration
